@@ -1,3 +1,5 @@
 .stack-work/
 dna-model-3d-print.cabal
 *~
+dist-newstyle/
+stack.yaml.lock
