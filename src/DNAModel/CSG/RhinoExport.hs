@@ -17,7 +17,7 @@ import           Linear                         ( _x
 
 testScene :: T.Scene Double
 testScene = T.Scene
-  [ T.cylinder 0.5 4 
+  [ T.cylinder 0.5 4
   , T.cylinder 0.5 4 & T.lookAt (V3 1 1 1) (V3 0 0 1)
   , T.cylinder 0.5 4 & T.lookAt (V3 1 0 0) (V3 0 0 1)
   , T.cylinder 0.5 4 & T.lookAt (V3 0 1 0) (V3 0 0 1)
