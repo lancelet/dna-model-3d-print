@@ -17,12 +17,22 @@ module DNAModel.CSG.Types
   , cone
   , cuboid
   , translate
+  , lookAt
   )
 where
 
+import           Control.Lens                   ( (^.) )
 import           Data.Text                      ( Text )
-import           Linear.V3                      ( V3(V3) )
-import           Linear.V4                      ( V4(V4) )
+import           Linear.Epsilon                 ( Epsilon )
+import           Linear.Metric                  ( normalize )
+import           Linear.V3                      ( V3(V3)
+                                                , cross
+                                                )
+import           Linear.V4                      ( V4(V4)
+                                                , _x
+                                                , _y
+                                                , _z
+                                                )
 import           Linear.Matrix                  ( M44 )
 
 newtype Scene a = Scene { unScene :: [Geom a] } deriving Show
@@ -61,11 +71,35 @@ translation (V3 x y z) = XForm m44
   r3  = V4 0 0 1 z
   r4  = V4 0 0 0 1
 
+lookAtXForm
+  :: (Floating a, Epsilon a)
+  => V3 a     -- ^ Target z direction.
+  -> V3 a     -- ^ Target y direction.
+  -> XForm a  -- ^ Lookat transformation matrix.
+lookAtXForm z y = XForm m44
+ where
+  m44  = V4 r1 r2 r3 r4
+  r1   = V4 (xHat ^. _x) (yHat ^. _x) (zHat ^. _x) 0
+  r2   = V4 (xHat ^. _y) (yHat ^. _y) (zHat ^. _y) 0
+  r3   = V4 (xHat ^. _z) (yHat ^. _z) (zHat ^. _z) 0
+  r4   = V4 0 0 0 1
+  zHat = normalize z
+  xHat = normalize (-zHat `cross` y)
+  yHat = normalize (zHat `cross` xHat)
+
 applyXForm :: XForm a -> Geom a -> Geom a
 applyXForm = GeomTransform
 
 translate :: Num a => V3 a -> Geom a -> Geom a
 translate v = applyXForm (translation v)
+
+lookAt
+  :: (Floating a, Epsilon a)
+  => V3 a    -- ^ Target z direction.
+  -> V3 a    -- ^ Target y direction.
+  -> Geom a  -- ^ Initial geometry.
+  -> Geom a  -- ^ Transformed geometry.
+lookAt z y = applyXForm (lookAtXForm z y)
 
 sphere
   :: a       -- ^ Radius.

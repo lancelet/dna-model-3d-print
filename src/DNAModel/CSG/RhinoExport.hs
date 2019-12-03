@@ -17,10 +17,10 @@ import           Linear                         ( _x
 
 testScene :: T.Scene Double
 testScene = T.Scene
-  [ T.sphere 1
-  , T.cylinder 1 2 & T.translate (V3 2 0 0)
-  , T.cone 1 2 & T.translate (V3 4 0 0)
-  , T.cuboid 2 2 2 & T.translate (V3 6 0 0)
+  [ T.cylinder 0.5 4 
+  , T.cylinder 0.5 4 & T.lookAt (V3 1 1 1) (V3 0 0 1)
+  , T.cylinder 0.5 4 & T.lookAt (V3 1 0 0) (V3 0 0 1)
+  , T.cylinder 0.5 4 & T.lookAt (V3 0 1 0) (V3 0 0 1)
   ]
 
 tshow :: Show a => a -> Text
