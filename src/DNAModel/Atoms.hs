@@ -78,12 +78,12 @@ atomGeom
   -> GeoAtom a     -- ^ Main atom.
   -> [GeoAtom a]   -- ^ Neighbouring atoms.
   -> CSG.Geom a    -- ^ Produced geometry.
-atomGeom cfg atm neighbours = CSG.GeomDifference
-  (CSG.sphere r & CSG.translate p)
-  subGeomList
+atomGeom cfg atm neighbours = CSG.GeomName
+  name
+  (CSG.GeomDifference (CSG.sphere r & CSG.translate p) subGeomList)
  where
-  GeoAtom _ p r = atm
-  subGeomList   = subtractionGeomForPair cfg atm <$> neighbours
+  GeoAtom name p r = atm
+  subGeomList      = subtractionGeomForPair cfg atm <$> neighbours
 
 -- | Subtraction geometry for a pair of atoms.
 subtractionGeomForPair

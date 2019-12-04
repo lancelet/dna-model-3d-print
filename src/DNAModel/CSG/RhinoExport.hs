@@ -65,7 +65,11 @@ rgbToText (RGB r g b) =
 
 geom :: (Fractional a, Show a) => Location -> T.Geom a -> (Id, Text)
 geom loc geo = case geo of
-  T.GeomPrim p        -> prim loc p
+  T.GeomPrim p      -> prim loc p
+  T.GeomName name g -> (locationToId loc, child <> setName)
+   where
+    (childId, child) = geom loc g
+    setName = "rs.ObjectName(" <> tshow childId <> ", " <> tshow name <> ")\n"
   T.GeomTransform x g -> (locationToId loc, child <> xform)
    where
     (childId, child) = geom loc g

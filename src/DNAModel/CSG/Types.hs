@@ -42,6 +42,7 @@ data Geom a
   | GeomTransform (XForm a) (Geom a)
   | GeomUnion [Geom a]
   | GeomDifference (Geom a) [Geom a]
+  | GeomName Text (Geom a)
   deriving Show
 
 data Prim a
