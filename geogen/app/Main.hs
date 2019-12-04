@@ -19,7 +19,7 @@ main = do
     sizeFn e = Atoms.elementRadius e * (1.0 / 0.7)
 
     createFilamentScene bases = CSG.scaleScene
-      1
+      10
       (CSG.Scene (Atoms.proteinGeom filamentCfg sizeFn bases))
 
     sceneGF   = createFilamentScene Bases.guanine
