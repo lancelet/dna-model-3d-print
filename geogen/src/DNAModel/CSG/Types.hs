@@ -17,6 +17,7 @@ module DNAModel.CSG.Types
   , cone
   , cuboid
   , translate
+  , rotateAxisAngle
   , lookAt
   , scaleScene
   )
@@ -73,6 +74,19 @@ translation (V3 x y z) = XForm m44
   r3  = V4 0 0 1 z
   r4  = V4 0 0 0 1
 
+axisAngleXForm :: (Floating a, Epsilon a) => V3 a -> a -> XForm a
+axisAngleXForm nn q = XForm m44
+ where
+  m44      = V4 r1 r2 r3 r4
+  r1       = V4 (t * x * x + c) (t * x * y - z * s) (t * x * z + y * s) 0
+  r2       = V4 (t * x * y + z * s) (t * y * y + c) (t * y * z - x * s) 0
+  r3       = V4 (t * x * z + y * s) (t * y * z + x * s) (t * z * z + c) 0
+  r4       = V4 0 0 0 1
+  V3 x y z = normalize nn
+  c        = cos q
+  s        = sin q
+  t        = 1 - c
+
 lookAtXForm
   :: (Floating a, Epsilon a)
   => V3 a     -- ^ Target z direction.
@@ -103,6 +117,9 @@ applyXForm = GeomTransform
 
 translate :: Num a => V3 a -> Geom a -> Geom a
 translate v = applyXForm (translation v)
+
+rotateAxisAngle :: (Floating a, Epsilon a) => V3 a -> a -> Geom a -> Geom a
+rotateAxisAngle axis angle = applyXForm (axisAngleXForm axis angle)
 
 scale :: Num a => a -> Geom a -> Geom a
 scale s = applyXForm (scaleXForm s)
