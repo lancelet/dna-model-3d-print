@@ -1,18 +1,15 @@
 module DNAModel.Atoms where
 
 import qualified DNAModel.CSG.Types            as CSG
-import qualified DNAModel.CSG.RhinoExport      as R
 
 import           Data.Function                  ( (&) )
-import qualified Data.Text                     as Text
+import           Data.Text                      ( Text )
 import           Linear.Epsilon                 ( Epsilon )
 import           Linear.V3                      ( V3(V3) )
 import           Linear.Metric                  ( distance
                                                 , normalize
                                                 )
 import           Linear.Vector                  ( (*^) )
-
-import           Debug.Trace                    ( trace )
 
 -- | Element for an atom.
 data Element
@@ -30,11 +27,12 @@ elementRadius e = case e of
   Phosphorus -> 1.00
 
 -- | Atom with Angstrom position and element name.
-data Atom a = Atom Element (V3 a)
+data Atom a = Atom Text Element (V3 a)
 
 -- | Geometric atom with origin and radius.
-data GeoAtom a = GeoAtom (V3 a) a
+data GeoAtom a = GeoAtom Text (V3 a) a deriving (Eq)
 
+-- | Geometry configuration.
 data GeomConfig a
   = GeomConfig
     { gcEpsilon         :: a
@@ -43,51 +41,67 @@ data GeomConfig a
     , gcChamfer         :: a
     }
 
+-- | Convert an Atom to a GeoAtom.
+atomToGeoAtom :: (Element -> a) -> Atom a -> GeoAtom a
+atomToGeoAtom sizeFn (Atom name el p) = GeoAtom name p (sizeFn el)
+
+-- | Generate the geometry of a protein.
+proteinGeom
+  :: (Floating a, Epsilon a, Ord a)
+  => GeomConfig a    -- ^ Geometry configuration.
+  -> (Element -> a)  -- ^ Element atomic radii in Angstrom units.
+  -> [Atom a]        -- ^ Atoms.
+  -> [CSG.Geom a]    -- ^ Protein geometry.
+proteinGeom cfg sizeFn atoms = geos
+ where
+  geoAtoms      = atomToGeoAtom sizeFn <$> atoms
+  neighbourSets = zip geoAtoms (intersectingAtoms geoAtoms <$> geoAtoms)
+  geos          = uncurry (atomGeom cfg) <$> neighbourSets
+
+-- | Find the atoms that intersect a given atom.
+intersectingAtoms
+  :: (Ord a, Floating a)
+  => [GeoAtom a]  -- ^ Potential neighbours.
+  -> GeoAtom a    -- ^ Main atom.
+  -> [GeoAtom a]  -- ^ Actual intersecting neighbours.
+intersectingAtoms potentialNeighbours atm = neighbours
+ where
+  neighbours = filter (isNeighbour atm) potentialNeighbours
+  isNeighbour a1@(GeoAtom _ p1 r1) a2@(GeoAtom _ p2 r2)
+    | a1 == a2  = False
+    | otherwise = distance p1 p2 < r2 + r1
+
 -- | Produce geometry for an atom.
 atomGeom
-  :: GeomConfig a  -- ^ Geometry configuration.
+  :: (Floating a, Epsilon a)
+  => GeomConfig a  -- ^ Geometry configuration.
   -> GeoAtom a     -- ^ Main atom.
   -> [GeoAtom a]   -- ^ Neighbouring atoms.
   -> CSG.Geom a    -- ^ Produced geometry.
-atomGeom cfg atm neighbours = undefined
-
-{-
-test :: IO ()
-test = do
-  let cfg = GeomConfig (1 :: Double) 4 5 0.5
-  let geom = subtractionGeom cfg 10 8
-  let aGeom = CSG.sphere 10 & CSG.translate (V3 0 0 8)
-  putStrLn $ Text.unpack $ R.scene (CSG.Scene [aGeom, geom])
--}
-test :: IO ()
-test = do
-  let cfg       = GeomConfig (1 :: Double) 4 5 0.5
-  let atm       = GeoAtom (V3 0 0 0) 10
-  let neighbour = GeoAtom (V3 15 0 0) 8
-  let scene = CSG.Scene
-        [ CSG.sphere 10
-        , CSG.sphere 8 & CSG.translate (V3 15 0 0)
-        , subtractionGeomForPair cfg atm neighbour
-        ]
-  putStrLn $ Text.unpack $ R.scene scene
+atomGeom cfg atm neighbours = CSG.GeomDifference
+  (CSG.sphere r & CSG.translate p)
+  subGeomList
+ where
+  GeoAtom _ p r = atm
+  subGeomList   = subtractionGeomForPair cfg atm <$> neighbours
 
 -- | Subtraction geometry for a pair of atoms.
 subtractionGeomForPair
-  :: (Floating a, Epsilon a, Show a)
+  :: (Floating a, Epsilon a)
   => GeomConfig a  -- ^ Geometry configuration.
   -> GeoAtom a     -- ^ Main atom.
   -> GeoAtom a     -- ^ Neighbouring atom.
   -> CSG.Geom a    -- ^ Produced geometry.
 subtractionGeomForPair cfg atm neighbour =
-  defaultSubtractionGeom cfg r1 (trace (show rb) rb)
+  defaultSubtractionGeom cfg r1 rb
     & CSG.lookAt (-r12) (V3 0 0 1)
     & CSG.translate (p1 + rb *^ r12)
  where
-  r12           = normalize (p2 - p1)
-  rb            = (d12 * d12 + r1 * r1 - r2 * r2) / (2 * d12)
-  d12           = distance p1 p2
-  GeoAtom p1 r1 = atm
-  GeoAtom p2 r2 = neighbour
+  r12             = normalize (p2 - p1)
+  rb              = (d12 * d12 + r1 * r1 - r2 * r2) / (2 * d12)
+  d12             = distance p1 p2
+  GeoAtom _ p1 r1 = atm
+  GeoAtom _ p2 r2 = neighbour
 
 -- | Default subtraction geometry for a connector.
 --

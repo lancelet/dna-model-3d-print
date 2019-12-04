@@ -71,14 +71,14 @@ geom loc geo = case geo of
     (childId, child) = geom loc g
     xform =
       "rs.TransformObject(" <> tshow childId <> ", " <> xformToText x <> ")\n"
-  T.GeomUnion gs -> (i, childObjs <> union <> "\n")
+  T.GeomUnion gs -> (i, childObjs <> union)
    where
     children  = (\(loc', geo') -> geom loc' geo') <$> listLocations loc gs
     childObjs = Text.concat (fmap snd children)
-    union     = tshow i <> " = rs.BooleanUnion([" <> items <> "])[0]"
+    union     = tshow i <> " = rs.BooleanUnion([" <> items <> "])[0]\n"
     items     = Text.intercalate "," (tshow . fst <$> children)
     i         = locationToId loc
-  T.GeomDifference g gs -> (i, childObjs <> "\n" <> diff)
+  T.GeomDifference g gs -> (i, childObjs <> diff)
    where
     diff =
       tshow i
@@ -86,10 +86,9 @@ geom loc geo = case geo of
         <> tshow (fst subtractee)
         <> ", ["
         <> items
-        <> "])[0]"
-    items = Text.intercalate "," (tshow . fst <$> subtractors)
-    childObjs =
-      snd subtractee <> "\n" <> Text.intercalate "\n" (fmap snd subtractors)
+        <> "])[0]\n"
+    items          = Text.intercalate "," (tshow . fst <$> subtractors)
+    childObjs      = snd subtractee <> Text.concat (fmap snd subtractors)
     locSubtractee  = locationAppend loc 1
     locSubtractors = locationAppend loc 2
     subtractee     = geom locSubtractee g
