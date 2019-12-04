@@ -4,6 +4,7 @@ import qualified DNAModel.Bases                as Bases
 import qualified DNAModel.Atoms                as Atoms
 import qualified DNAModel.CSG.Types            as CSG
 import qualified DNAModel.CSG.RhinoExport      as R
+import qualified DNAModel.TestModel            as TestModel
 
 import qualified Data.Text                     as Text
 
@@ -21,14 +22,18 @@ main = do
       1
       (CSG.Scene (Atoms.proteinGeom filamentCfg sizeFn bases))
 
-    sceneGF = createFilamentScene Bases.guanine
-    sceneCF = createFilamentScene Bases.cytosine
-    sceneAF = createFilamentScene Bases.adenine
-    sceneTF = createFilamentScene Bases.thymine
-    sceneDF = createFilamentScene Bases.spineUnit
+    sceneGF   = createFilamentScene Bases.guanine
+    sceneCF   = createFilamentScene Bases.cytosine
+    sceneAF   = createFilamentScene Bases.adenine
+    sceneTF   = createFilamentScene Bases.thymine
+    sceneDF   = createFilamentScene Bases.spineUnit
+
+    testModel = TestModel.testScene
 
   writeFile "guanine.filament.rhino.py"  (Text.unpack $ R.scene sceneGF)
   writeFile "cytosine.filament.rhino.py" (Text.unpack $ R.scene sceneCF)
   writeFile "adenine.filament.rhino.py"  (Text.unpack $ R.scene sceneAF)
   writeFile "thymine.filament.rhino.py"  (Text.unpack $ R.scene sceneTF)
   writeFile "deoxy.filament.rhino.py"    (Text.unpack $ R.scene sceneDF)
+
+  writeFile "testmodel.rhino.py"         (Text.unpack $ R.scene testModel)

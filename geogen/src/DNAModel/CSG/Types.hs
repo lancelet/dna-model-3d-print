@@ -20,6 +20,8 @@ module DNAModel.CSG.Types
   , rotateAxisAngle
   , lookAt
   , scaleScene
+  , translateScene
+  , rotateAxisAngleScene
   )
 where
 
@@ -38,6 +40,12 @@ import           Linear.V4                      ( V4(V4)
 import           Linear.Matrix                  ( M44 )
 
 newtype Scene a = Scene { unScene :: [Geom a] } deriving Show
+
+instance Semigroup (Scene a) where
+  Scene s1 <> Scene s2 = Scene (s1 <> s2)
+
+instance Monoid (Scene a) where
+  mempty = Scene []
 
 data Geom a
   = GeomPrim (Prim a)
@@ -80,7 +88,7 @@ axisAngleXForm nn q = XForm m44
   m44      = V4 r1 r2 r3 r4
   r1       = V4 (t * x * x + c) (t * x * y - z * s) (t * x * z + y * s) 0
   r2       = V4 (t * x * y + z * s) (t * y * y + c) (t * y * z - x * s) 0
-  r3       = V4 (t * x * z + y * s) (t * y * z + x * s) (t * z * z + c) 0
+  r3       = V4 (t * x * z - y * s) (t * y * z + x * s) (t * z * z + c) 0
   r4       = V4 0 0 0 1
   V3 x y z = normalize nn
   c        = cos q
@@ -162,3 +170,11 @@ scaleScene
   -> Scene a  -- ^ Original scene.
   -> Scene a  -- ^ Scaled scene.
 scaleScene s = Scene . fmap (scale s) . unScene
+
+translateScene :: (Num a) => V3 a -> Scene a -> Scene a
+translateScene v = Scene . fmap (translate v) . unScene
+
+rotateAxisAngleScene
+  :: (Floating a, Epsilon a) => V3 a -> a -> Scene a -> Scene a
+rotateAxisAngleScene axis angle =
+  Scene . fmap (rotateAxisAngle axis angle) . unScene
