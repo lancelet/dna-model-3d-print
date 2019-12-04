@@ -71,10 +71,10 @@ geom loc geo = case geo of
     (childId, child) = geom loc g
     xform =
       "rs.TransformObject(" <> tshow childId <> ", " <> xformToText x <> ")\n"
-  T.GeomUnion gs -> (i, childObjs <> "\n" <> union)
+  T.GeomUnion gs -> (i, childObjs <> union <> "\n")
    where
     children  = (\(loc', geo') -> geom loc' geo') <$> listLocations loc gs
-    childObjs = Text.intercalate "\n" (fmap snd children)
+    childObjs = Text.concat (fmap snd children)
     union     = tshow i <> " = rs.BooleanUnion([" <> items <> "])[0]"
     items     = Text.intercalate "," (tshow . fst <$> children)
     i         = locationToId loc
