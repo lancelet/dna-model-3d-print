@@ -1,16 +1,18 @@
 module DNAModel.Atoms where
 
-import qualified DNAModel.CSG.Types as CSG
-import qualified DNAModel.CSG.RhinoExport as R
+import qualified DNAModel.CSG.Types            as CSG
+import qualified DNAModel.CSG.RhinoExport      as R
 
-import Data.Function ((&))
-import qualified Data.Text as Text
-import Linear.Epsilon (Epsilon)
-import Linear.V3 (V3(V3))
-import Linear.Metric (distance, normalize)
-import Linear.Vector ((*^))
+import           Data.Function                  ( (&) )
+import qualified Data.Text                     as Text
+import           Linear.Epsilon                 ( Epsilon )
+import           Linear.V3                      ( V3(V3) )
+import           Linear.Metric                  ( distance
+                                                , normalize
+                                                )
+import           Linear.Vector                  ( (*^) )
 
-import Debug.Trace (trace)
+import           Debug.Trace                    ( trace )
 
 -- | Element for an atom.
 data Element
@@ -59,13 +61,13 @@ test = do
 -}
 test :: IO ()
 test = do
-  let cfg = GeomConfig (1 :: Double) 4 5 0.5
-  let atm = GeoAtom (V3 0 0 0) 10
+  let cfg       = GeomConfig (1 :: Double) 4 5 0.5
+  let atm       = GeoAtom (V3 0 0 0) 10
   let neighbour = GeoAtom (V3 15 0 0) 8
   let scene = CSG.Scene
         [ CSG.sphere 10
         , CSG.sphere 8 & CSG.translate (V3 15 0 0)
-        , subtractionGeomForPair cfg atm neighbour 
+        , subtractionGeomForPair cfg atm neighbour
         ]
   putStrLn $ Text.unpack $ R.scene scene
 
@@ -76,16 +78,16 @@ subtractionGeomForPair
   -> GeoAtom a     -- ^ Main atom.
   -> GeoAtom a     -- ^ Neighbouring atom.
   -> CSG.Geom a    -- ^ Produced geometry.
-subtractionGeomForPair cfg atm neighbour
-  = defaultSubtractionGeom cfg r1 (trace (show rb) rb)
-  & CSG.lookAt (-r12) (V3 0 0 1)
-  & CSG.translate (p1 + rb *^ r12)
-  where
-    r12 = normalize (p2 - p1)
-    rb = (d12*d12 + r1*r1 - r2*r2) / (2 * d12)
-    d12 = distance p1 p2
-    GeoAtom p1 r1 = atm
-    GeoAtom p2 r2 = neighbour
+subtractionGeomForPair cfg atm neighbour =
+  defaultSubtractionGeom cfg r1 (trace (show rb) rb)
+    & CSG.lookAt (-r12) (V3 0 0 1)
+    & CSG.translate (p1 + rb *^ r12)
+ where
+  r12           = normalize (p2 - p1)
+  rb            = (d12 * d12 + r1 * r1 - r2 * r2) / (2 * d12)
+  d12           = distance p1 p2
+  GeoAtom p1 r1 = atm
+  GeoAtom p2 r2 = neighbour
 
 -- | Default subtraction geometry for a connector.
 --
@@ -96,17 +98,12 @@ defaultSubtractionGeom
   -> a             -- ^ Atom radius.
   -> a             -- ^ Radius at the connector base.
   -> CSG.Geom a    -- ^ Produced geometry.
-defaultSubtractionGeom cfg r rb
-  = CSG.GeomUnion
-    [ cylinder
-    , cuboid
-    , cone
-    ]
-  where
-    cylinder = CSG.cylinder cr (cd+eps) & CSG.translate (V3 0 0 (-eps))
-    cuboid = CSG.cuboid cuboidW cuboidW (r-rb+eps)
-             & CSG.translate (V3 0 0 (-(r-rb+eps)/2))
-    cuboidW = eps + 2 * sqrt (r*r - rb*rb)
-    cone = CSG.cone coneR coneR & CSG.translate (V3 0 0 (-eps))
-    coneR = cr + chamfer + eps
-    GeomConfig eps cr cd chamfer = cfg
+defaultSubtractionGeom cfg r rb = CSG.GeomUnion [cylinder, cuboid, cone]
+ where
+  cylinder = CSG.cylinder cr (cd + eps) & CSG.translate (V3 0 0 (-eps))
+  cuboid   = CSG.cuboid cuboidW cuboidW (r - rb + eps)
+    & CSG.translate (V3 0 0 (-(r - rb + eps) / 2))
+  cuboidW                      = eps + 2 * sqrt (r * r - rb * rb)
+  cone = CSG.cone coneR coneR & CSG.translate (V3 0 0 (-eps))
+  coneR                        = cr + chamfer + eps
+  GeomConfig eps cr cd chamfer = cfg
