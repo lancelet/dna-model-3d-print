@@ -9,13 +9,8 @@ import           DNAModel.Atoms                 ( Atom(Atom)
                                                   , Oxygen
                                                   )
                                                 )
-import qualified DNAModel.Atoms                as Atoms
-import qualified DNAModel.CSG.Types            as CSG
-import qualified DNAModel.CSG.RhinoExport      as R
 
-import           Data.Function                  ( (&) )
 import           Data.Text                      ( Text )
-import qualified Data.Text                     as Text
 import           Linear.V3                      ( V3(V3) )
 
 spineUnit :: Fractional a => [Atom a]
