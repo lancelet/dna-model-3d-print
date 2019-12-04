@@ -18,6 +18,7 @@ module DNAModel.CSG.Types
   , cuboid
   , translate
   , lookAt
+  , scaleScene
   )
 where
 
@@ -88,11 +89,23 @@ lookAtXForm z y = XForm m44
   xHat = normalize (-zHat `cross` y)
   yHat = normalize (zHat `cross` xHat)
 
+scaleXForm :: Num a => a -> XForm a
+scaleXForm s = XForm m44
+ where
+  m44 = V4 r1 r2 r3 r4
+  r1  = V4 s 0 0 0
+  r2  = V4 0 s 0 0
+  r3  = V4 0 0 s 0
+  r4  = V4 0 0 0 1
+
 applyXForm :: XForm a -> Geom a -> Geom a
 applyXForm = GeomTransform
 
 translate :: Num a => V3 a -> Geom a -> Geom a
 translate v = applyXForm (translation v)
+
+scale :: Num a => a -> Geom a -> Geom a
+scale s = applyXForm (scaleXForm s)
 
 lookAt
   :: (Floating a, Epsilon a)
@@ -125,3 +138,10 @@ cuboid
   -> a       -- ^ Height (z).
   -> Geom a  -- ^ Cuboid geometry.
 cuboid x y z = GeomPrim . PrimCuboid $ Cuboid (Width x) (Depth y) (Height z)
+
+scaleScene
+  :: Num a
+  => a        -- ^ Amount to scale a scene.
+  -> Scene a  -- ^ Original scene.
+  -> Scene a  -- ^ Scaled scene.
+scaleScene s = Scene . fmap (scale s) . unScene
