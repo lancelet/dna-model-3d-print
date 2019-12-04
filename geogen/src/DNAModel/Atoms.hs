@@ -1,9 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
 module DNAModel.Atoms where
 
 import qualified DNAModel.CSG.Types            as CSG
 
 import           Data.Function                  ( (&) )
 import           Data.Text                      ( Text )
+import qualified Data.Text                     as Text
 import           Linear.Epsilon                 ( Epsilon )
 import           Linear.V3                      ( V3(V3) )
 import           Linear.Metric                  ( distance
@@ -52,8 +54,10 @@ proteinGeom
   -> (Element -> a)  -- ^ Element atomic radii in Angstrom units.
   -> [Atom a]        -- ^ Atoms.
   -> [CSG.Geom a]    -- ^ Protein geometry.
-proteinGeom cfg sizeFn atoms = geos
+proteinGeom cfg sizeFn atoms = filter notDummy geos
  where
+  notDummy (CSG.GeomName name _) | Text.isInfixOf "Dummy" name = False
+  notDummy _ = True
   geoAtoms      = atomToGeoAtom sizeFn <$> atoms
   neighbourSets = zip geoAtoms (intersectingAtoms geoAtoms <$> geoAtoms)
   geos          = uncurry (atomGeom cfg) <$> neighbourSets
