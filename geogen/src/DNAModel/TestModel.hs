@@ -10,10 +10,12 @@ import           Linear.Epsilon                 ( Epsilon )
 import           Linear.V3                      ( V3(V3) )
 
 config :: Fractional a => Atoms.GeomConfig a
-config = Atoms.GeomConfig { Atoms.gcEpsilon         = 0.2
-                          , Atoms.gcConnectorRadius = 0.285
-                          , Atoms.gcConnectorDepth  = 0.5
-                          , Atoms.gcChamfer         = 0.05
+config = Atoms.GeomConfig { Atoms.gcEpsilon             = 0.2
+                          , Atoms.gcConnectorRadius     = 0.285
+                          , Atoms.gcConnectorDepth      = 0.5
+                          , Atoms.gcChamfer             = 0.05
+                          , Atoms.gcHydrogenSocketDepth = 0.2
+                          , Atoms.gcHydrogenPlugDepth   = 0.1
                           }
 
 sizeFn :: Fractional a => Atoms.Element -> a
@@ -75,9 +77,14 @@ placePairs :: (Floating a, Epsilon a) => [CSG.Scene a] -> CSG.Scene a
 placePairs pairs = mconcat $ placePair <$> zip [0 :: Int ..] pairs
  where
   placePair (index, pair) =
-    pair
-      & CSG.rotateAxisAngleScene (V3 0 0 1) rz
-      & CSG.translateScene (V3 0 dy dz)
+    {-
+    (pair
+     & CSG.translateScene (V3 0 dy dz))
+     & CSG.rotateAxisAngleScene (V3 0 0 1) rz
+    -}
+    (pair & CSG.rotateAxisAngleScene (V3 0 0 1) rz & CSG.translateScene
+      (V3 0 dy dz)
+    )
    where
     dy = -0.23 * fromIntegral index
     dz = 3.32 * fromIntegral index
@@ -85,17 +92,19 @@ placePairs pairs = mconcat $ placePair <$> zip [0 :: Int ..] pairs
 
 -- DNA (5'-D(*CP*GP*CP*GP*AP*AP*TP*TP*CP*GP*CP*G)-3')
 testScene :: CSG.Scene Double
-testScene = placePairs . reverse $
-  [ cgPair
-  , gcPair
-  , cgPair
-  , gcPair
-  , atPair
-  , atPair
-  , taPair
-  , taPair
-  , cgPair
-  , gcPair
-  , cgPair
-  , gcPair
-  ]
+testScene =
+  placePairs
+    . reverse
+    $ [ cgPair
+      , gcPair
+      , cgPair
+      , gcPair
+      , atPair
+      , atPair
+      , taPair
+      , taPair
+      , cgPair
+      , gcPair
+      , cgPair
+      , gcPair
+      ]
