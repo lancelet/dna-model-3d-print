@@ -16,8 +16,8 @@ main = do
   let
     filamentCfg = Atoms.GeomConfig
       { Atoms.gcEpsilon             = 0.2 :: Double
-      , Atoms.gcConnectorRadius     = 0.285 * (5.0 / 8.0)
-      , Atoms.gcConnectorDepth      = 0.5
+      , Atoms.gcConnectorRadius     = 0.3
+      , Atoms.gcConnectorDepth      = 0.3
       , Atoms.gcChamfer             = 0.08
       , Atoms.gcHydrogenSocketDepth = 0.125
       , Atoms.gcHydrogenPlugDepth   = 0.1
@@ -27,7 +27,7 @@ main = do
     createFilamentScene rotDegNY bases =
       CSG.Scene (Atoms.proteinGeom filamentCfg sizeFn bases)
         & CSG.rotateAxisAngleScene (V3 0 -1 0) (rotDegNY * pi / 180)
-        & CSG.scaleScene 8
+        & CSG.scaleScene 10
 
     sceneGF = createFilamentScene 0.0 Bases.guanine
     sceneCF = createFilamentScene 0.0 Bases.cytosine

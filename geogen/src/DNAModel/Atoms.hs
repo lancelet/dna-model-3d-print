@@ -153,6 +153,7 @@ hydrogenPlugGeomForPair cfg radiusFn atm neighbour =
 -- | Default subtraction geometry for a connector.
 --
 -- This geometry is centred at the origin and aligned with the z-axis.
+{-
 defaultSubtractionGeom
   :: Floating a
   => GeomConfig a  -- ^ Geometry configuration.
@@ -167,6 +168,15 @@ defaultSubtractionGeom cfg r rb = CSG.GeomUnion [cylinder, cuboid, cone]
   cuboidW                          = eps + 2 * sqrt (r * r - rb * rb)
   cone = CSG.cone coneR coneR & CSG.translate (V3 0 0 (-eps))
   coneR                            = cr + chamfer + eps
+  GeomConfig eps cr cd chamfer _ _ = cfg
+-}
+defaultSubtractionGeom cfg r rb = CSG.GeomUnion [flatCuboid, connectorCuboid]
+  where
+  connectorCuboid = CSG.cuboid (2*cr) (2*cr) (cd+eps)
+    & CSG.translate (V3 0 0 (cd/2))
+  flatCuboid = CSG.cuboid flatCuboidW flatCuboidW (r - rb + eps)
+    & CSG.translate (V3 0 0 (-(r - rb + eps) / 2))
+  flatCuboidW = eps + 2 * sqrt (r * r - rb * rb)
   GeomConfig eps cr cd chamfer _ _ = cfg
 
 -- | Default hydrogen plug subtraction geometry.
