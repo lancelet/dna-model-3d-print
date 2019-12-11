@@ -43,8 +43,10 @@ spineUnit =
         , Atom Dummy  "H5"     Hydrogen   (V3 -2.251 6.541 1.168)
         , Atom Dummy  "H6"     Hydrogen   (V3 -3.856 5.840 1.488)
         , Atom Dummy  "DummyC" Carbon     (V3 -2.465 5.399 -0.246)
-        , Atom Dummy  "DummyC" Carbon     (V3 -6.48106 5.09078 1.45)
-        , Atom Dummy  "DummyO" Oxygen     (V3 -1.80055 9.63195 -1.679)
+        -- , Atom Dummy  "DummyC" Carbon     (V3 -6.48106 5.09078 1.45)
+        , Atom Dummy  "DummyC" Carbon     (V3 -6.61625 5.27686 1.45)
+        -- , Atom Dummy  "DummyO" Oxygen     (V3 -1.80055 9.63195 -1.679)
+        , Atom Dummy  "DummyO" Oxygen     (V3 -1.80055 9.40195 -1.679)
         ]
 
 guanine :: Fractional a => [Atom a]
